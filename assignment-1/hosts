@@ -1,0 +1,8 @@
+
+[apache]
+vm1 ansible_host=54.153.67.142 ansible_ssh_private_key_file=~/.ssh/venetialiana.pem
+vm2 ansible_host=54.153.48.121 ansible_ssh_private_key_file=~/.ssh/venetialiana.pem
+
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
