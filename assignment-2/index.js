@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import OAuth from "oauth-1.0a";
 import dotenv from 'dotenv';
 import express from 'express';
-import bodyParser from 'body-parser';
 
 const app=new express();
 
@@ -90,10 +89,10 @@ async function deleteRequest({ oauth_token, oauth_token_secret },id) {
     }
 }
 
-async function getRequest({ oauth_token, oauth_token_secret},id){
-    console.log(id);
-    const endpointURL = `https://api.twitter.com/2/tweets/${id}`;
+async function getRequest({ oauth_token, oauth_token_secret}, userId){
+    const endpointURL = `https://api.twitter.com/2/users/${userId}/tweets`;
 
+    console.log(endpointURL)
     const token = {
         key: oauth_token,
         secret: oauth_token_secret,
@@ -144,7 +143,7 @@ app.delete('/Tweet/:id', async function (req, res) {
     }
 
 })
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(express.json());
 app.post('/Tweet',async function(req,res){
     const oAuthAccessToken = process.env.ACCESS_TOKEN;
     const oauthAccessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
@@ -167,14 +166,16 @@ app.post('/Tweet',async function(req,res){
 
 })
 
-app.get('/Tweet/:id', async function (req, res) {
-    var id=req.params['id'];
+// userId='1570098561924370432'
+app.get('/RecentTweets/:userId', async function (req, res) {
+    var userId=req.params['userId'];
+
     const oAuthAccessToken = process.env.ACCESS_TOKEN;
     const oauthAccessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
     const response = await getRequest({
         oauth_token: oAuthAccessToken,
         oauth_token_secret: oauthAccessTokenSecret,
-    },id);
+    }, userId);
     console.dir(response, {
         depth: null
     });
