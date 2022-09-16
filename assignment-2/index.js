@@ -3,13 +3,13 @@ import crypto from 'crypto';
 import OAuth from "oauth-1.0a";
 import dotenv from 'dotenv';
 import express from 'express';
+import bodyParser from 'body-parser';
 
 const app=new express();
 
 dotenv.config()
 
 // The code below sets the consumer key and consumer secret from your environment variables
-// To set environment variables on macOS or Linux, run the export commands below from the terminal:
 const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
 
@@ -24,9 +24,9 @@ const oauth = new OAuth({
 });
 
 async function postRequest({
-                              oauth_token,
-                              oauth_token_secret
-                          }) {
+                               oauth_token,
+                               oauth_token_secret
+                           },data) {
 
     const endpointURL = `https://api.twitter.com/2/tweets`;
 
@@ -39,12 +39,10 @@ async function postRequest({
         method: 'POST'
     }, token));
 
-    const data={
-        "text": "This is a test!"
-    };
+    const data_tweet=data;
 
     const req = await got.post(endpointURL, {
-        json: data,
+        json: data_tweet,
         responseType: 'json',
         headers: {
             Authorization: authHeader["Authorization"],
@@ -60,8 +58,7 @@ async function postRequest({
     }
 }
 
-async function deleteRequest({ oauth_token, oauth_token_secret }) {
-    const id = '1570455795862753280';
+async function deleteRequest({ oauth_token, oauth_token_secret },id) {
     const endpointURL = `https://api.twitter.com/2/tweets/${id}`;
     const token = {
         key: oauth_token,
@@ -93,11 +90,9 @@ async function deleteRequest({ oauth_token, oauth_token_secret }) {
     }
 }
 
-async function getRequest({ oauth_token, oauth_token_secret }) {
-    const tweetIDs = '1278747501642657792,1275828087666679809'; // Edit the Tweet IDs to look up
-    const params = 'tweet.fields=lang,author_id&user.fields=created_at'; // Edit optional query parameters here
-
-    const endpointURL = `https://api.twitter.com/2/tweets?ids=${tweetIDs}&${params}`;
+async function getRequest({ oauth_token, oauth_token_secret},id){
+    console.log(id);
+    const endpointURL = `https://api.twitter.com/2/tweets/${id}`;
 
     const token = {
         key: oauth_token,
@@ -129,15 +124,16 @@ async function getRequest({ oauth_token, oauth_token_secret }) {
     }
 }
 
-app.delete('/DeleteTweet', async function (req, res) {
+app.delete('/Tweet/:id', async function (req, res) {
     try {
         const oAuthAccessToken = process.env.ACCESS_TOKEN;
         const oauthAccessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+        var tweet_id=req.params['id'];
         // Make the request
         const response = await deleteRequest({
             oauth_token: oAuthAccessToken,
             oauth_token_secret: oauthAccessTokenSecret,
-        });
+        },tweet_id);
         console.dir(response, {
             depth: null,
         });
@@ -148,16 +144,17 @@ app.delete('/DeleteTweet', async function (req, res) {
     }
 
 })
-
-app.post('/CreateTweet',async function(req,res){
+app.use(bodyParser.urlencoded({extended:true}));
+app.post('/Tweet',async function(req,res){
     const oAuthAccessToken = process.env.ACCESS_TOKEN;
     const oauthAccessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+    const data = req.body;
     // Make the request
     try {
         const response = await postRequest({
             oauth_token: oAuthAccessToken,
             oauth_token_secret: oauthAccessTokenSecret,
-        });
+        },data);
         //console.log(response);
         console.dir(response, {
             depth: null,
@@ -170,13 +167,14 @@ app.post('/CreateTweet',async function(req,res){
 
 })
 
-app.get('/ListTweets', async function (req, res) {
+app.get('/Tweet/:id', async function (req, res) {
+    var id=req.params['id'];
     const oAuthAccessToken = process.env.ACCESS_TOKEN;
     const oauthAccessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
     const response = await getRequest({
         oauth_token: oAuthAccessToken,
         oauth_token_secret: oauthAccessTokenSecret,
-    });
+    },id);
     console.dir(response, {
         depth: null
     });
